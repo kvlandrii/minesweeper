@@ -2,20 +2,21 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 2;
-    state.field = logic.createField();
-    state.bombsCount = 1;
+    state.fieldSize = 3;
+    state.field = logic.createField(state.fieldSize);
+    state.bombsCount = 2;
     state.bombsPosition = logic.createBombs();
+    state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
     state.lose = false;
   },
   
-  createField() 
+  createField(fieldSize) 
   {
-    let field = new Array(state.fieldSize);
-    for (let i = 0; i < state.fieldSize; i++) 
+    let field = new Array(fieldSize);
+    for (let i = 0; i < fieldSize; i++) 
     {
-      field[i] = new Array(state.fieldSize);
+      field[i] = new Array(fieldSize);
     }
     return field;
   },
@@ -32,7 +33,7 @@ const logic =
 
   createBombs() 
   {
-    let bombsPosition = logic.createField();
+    let bombsPosition = logic.createField(state.fieldSize);
     let bombsPlaced = 0;
     while(bombsPlaced < state.bombsCount)
     {
@@ -47,15 +48,22 @@ const logic =
     return bombsPosition;
   },
 
-  handleShots()
+  handleTurns()
   {
     while(!state.lose)
     {
       if(state.openedSquares != (state.fieldSize**2 - state.bombsCount))
       {
-        let pos = logic.getUserShot();
-        logic.doShot(pos);
-        render.field(state.field);
+        let pos = logic.getOpenPosition();
+        if(!state.field[pos.x][pos.y] && state.field[pos.x][pos.y] != 0)
+        {
+          logic.open(pos);
+          render.field(state.field);
+        }
+        else
+        {
+          render.alreadyOpened();
+        }
       }
       else
       {
@@ -66,27 +74,74 @@ const logic =
     render.loser();
   },
   
-  getUserShot()
+  getOpenPosition()
   {
-    let input = prompt(render.shotRequestMsg());
+    let retry = true;
+    while(retry)
+    {
+      retry = false;
+      let input = prompt(render.openRequestMsg());
+      var x = parseInt(input[0]);
+      var y = parseInt(input[1]);
+      if(x >= state.fieldSize || y >= state.fieldSize)
+      {
+        retry = true;
+        render.wrongInput();
+      }
+    }
+
     return {
-      x: input[0],
-      y: input[1]
+      x: x,
+      y: y
     }
   },
   
-  doShot(pos)
+  open(pos)
   {
+    state.field[pos.x][pos.y] = logic.openedPlace(pos);
     if(state.bombsPosition[pos.x][pos.y])
     {
-      state.field[pos.x][pos.y] = true;
       state.lose = true;
     }
     else
     {
-      state.field[pos.x][pos.y] = false;
       state.openedSquares++;
     }
+  },
+
+  openedPlace(pos)
+  {
+    let biggerField = logic.createField(state.fieldSize + 2);
+    biggerField = logic.copyForBiggerField(state.bombsPosition, biggerField);
+    let bombsNear = 0;
+    let x = pos.x + 1;
+    let y = pos.y + 1;
+    if(!biggerField[x][y])
+    {
+      if(biggerField[x - 1][y - 1]) bombsNear++;
+      if(biggerField[x - 1][y]) bombsNear++;
+      if(biggerField[x - 1][y + 1]) bombsNear++;
+      if(biggerField[x][y - 1]) bombsNear++;
+      if(biggerField[x][y + 1]) bombsNear++;
+      if(biggerField[x + 1][y - 1]) bombsNear++;
+      if(biggerField[x + 1][y]) bombsNear++;
+      if(biggerField[x + 1][y + 1]) bombsNear++;
+      return bombsNear;
+    }
+    return `bomb`;
+  },
+
+  copyForBiggerField(from, to)
+  {
+    for (let i = 0; i < from.length; i++) {
+      for (let j = 0; j < from.length; j++) {
+        if(from[i][j])
+        {
+          to[i + 1][j + 1] = true;
+        }
+      }
+    }
+    return to;
   },
   
   startGame()
@@ -94,7 +149,7 @@ const logic =
     logic.init();
     render.field(state.field);
     render.field(state.bombsPosition);
-    logic.handleShots();
+    logic.handleTurns();
   },
 
 };
@@ -110,7 +165,7 @@ const render =
     console.log(``);
   },
 
-  shotRequestMsg()
+  openRequestMsg()
   {
     return `Enter square coordinates:`;
   },
@@ -123,6 +178,16 @@ const render =
   loser()
   {
     console.log(`Loser!`);
+  },
+
+  wrongInput()
+  {
+    console.log(`Wrong input! Choose another coordinates!`);
+  },
+
+  alreadyOpened()
+  {
+    console.log(`This square has already been used!`);
   }
 
 };
@@ -133,6 +198,7 @@ const state =
   field: null,
   bombsCount: null,
   bombsPosition: null,
+  numbersField: null,
   openedSquares: null,
   lose: null,
 };
