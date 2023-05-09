@@ -1,63 +1,140 @@
-const game = {
-
-  getFieldSize() {
-    const size = parseInt(prompt('Please enter a number: '));
-    return size;
+const logic = 
+{
+  init()
+  {
+    state.fieldSize = 2;
+    state.field = logic.createField();
+    state.bombsCount = 1;
+    state.bombsPosition = logic.createBombs();
+    state.openedSquares = 0;
+    state.lose = false;
   },
   
-  createField(size) {
-    let field = new Array(size);
-    for (let i = 0; i < size; i++) {
-      field[i] = new Array(size);
+  createField() 
+  {
+    let field = new Array(state.fieldSize);
+    for (let i = 0; i < state.fieldSize; i++) 
+    {
+      field[i] = new Array(state.fieldSize);
     }
     return field;
   },
   
-  getRandomPosition(fieldSize){
-    const randX = Math.floor(Math.random() * fieldSize);
-    const randY = Math.floor(Math.random() * fieldSize);
+  getRandomPosition()
+  {
+    let randX = Math.floor(Math.random() * state.fieldSize);
+    let randY = Math.floor(Math.random() * state.fieldSize);
     return {
       x: randX,
       y: randY
     }
   },
 
-  fillField(field, bombsCount) {
+  createBombs() 
+  {
+    let bombsPosition = logic.createField();
     let bombsPlaced = 0;
-    while(bombsPlaced < bombsCount)
+    while(bombsPlaced < state.bombsCount)
     {
-      let pos = game.getRandomPosition(field.length);
+      let pos = logic.getRandomPosition();
 
-      if(!field[pos.x][pos.y])
+      if(!bombsPosition[pos.x][pos.y])
       {
-        field[pos.x][pos.y] = true;
+        bombsPosition[pos.x][pos.y] = true;
         bombsPlaced++;
       }
     }
-    return field;
+    return bombsPosition;
   },
-};
-  
-const render = {
-  renderField(state) {
-      for (let i = 0; i < state.field.length; i++) {
-      console.log(state.field[i]);
+
+  handleShots()
+  {
+    while(!state.lose)
+    {
+      if(state.openedSquares != (state.fieldSize**2 - state.bombsCount))
+      {
+        let pos = logic.getUserShot();
+        logic.doShot(pos);
+        render.field(state.field);
       }
+      else
+      {
+        render.winner();
+        return;
+      }
+    }
+    render.loser();
+  },
+  
+  getUserShot()
+  {
+    let input = prompt(render.shotRequestMsg());
+    return {
+      x: input[0],
+      y: input[1]
+    }
+  },
+  
+  doShot(pos)
+  {
+    if(state.bombsPosition[pos.x][pos.y])
+    {
+      state.field[pos.x][pos.y] = true;
+      state.lose = true;
+    }
+    else
+    {
+      state.field[pos.x][pos.y] = false;
+      state.openedSquares++;
+    }
+  },
+  
+  startGame()
+  {
+    logic.init();
+    render.field(state.field);
+    render.field(state.bombsPosition);
+    logic.handleShots();
+  },
+
+};
+  
+const render = 
+{
+  field(field) 
+  {
+    for (let i = 0; i < field.length; i++) 
+    {
+      console.log(field[i]);
+    }
+    console.log(``);
+  },
+
+  shotRequestMsg()
+  {
+    return `Enter square coordinates:`;
+  },
+
+  winner()
+  {
+    console.log(`Winner!`);
+  },
+  
+  loser()
+  {
+    console.log(`Loser!`);
   }
+
 };
   
-const state = {
-  fieldSize: 5,
-  field: game.fillField(game.createField(5), 10),
-  bombsCount: 10,
+const state = 
+{
+  fieldSize: null,
+  field: null,
+  bombsCount: null,
+  bombsPosition: null,
+  openedSquares: null,
+  lose: null,
 };
   
-function main(){
-    // const size = game.getFieldSize();
-    // state.fieldSize = size;
-    // state.field = game.fillField(game.createField(size));
-    render.renderField(state);
-
-}
-
-main();
+logic.startGame();
