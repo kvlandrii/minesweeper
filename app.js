@@ -2,13 +2,17 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 3;
+    state.fieldSize = 5;
     state.field = logic.createField(state.fieldSize);
     state.bombsCount = 2;
     state.bombsPosition = logic.createBombs();
     state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
     state.lose = false;
+    state.root = document.documentElement;
+    state.root.style.setProperty('--fieldSize', state.fieldSize);
+    state.grid = document.querySelector('.grid-container');
+
   },
   
   createField(fieldSize) 
@@ -98,7 +102,7 @@ const logic =
   
   open(pos)
   {
-    state.field[pos.x][pos.y] = logic.openedPlace(pos);
+    state.field[pos.x][pos.y] = logic.openedCell(pos);
     if(state.bombsPosition[pos.x][pos.y])
     {
       state.lose = true;
@@ -109,7 +113,7 @@ const logic =
     }
   },
 
-  openedPlace(pos)
+  openedCell(pos)
   {
     let biggerField = logic.createField(state.fieldSize + 2);
     biggerField = logic.copyForBiggerField(state.bombsPosition, biggerField);
@@ -143,13 +147,30 @@ const logic =
     }
     return to;
   },
+
+  addClickOnCells()
+  {
+    const cells = document.querySelectorAll('.cell');
+
+    cells.forEach((cell) => {
+      cell.addEventListener('click', logic.handleClick);
+    });
+  },
+
+  handleClick() {
+    console.log(`Cell ${event.target.classList[1]} was clicked!`);
+    event.target.style.backgroundColor = `#a0a0a0`;
+    event.target.removeEventListener('click', logic.handleClick);
+  },
   
   startGame()
   {
     logic.init();
+    render.grid();
+    logic.addClickOnCells();
     render.field(state.field);
     render.field(state.bombsPosition);
-    logic.handleTurns();
+    //logic.handleTurns();
   },
 
 };
@@ -188,6 +209,21 @@ const render =
   alreadyOpened()
   {
     console.log(`This square has already been used!`);
+  },
+
+  grid()
+  {
+    for (let i = 0; i < state.fieldSize; i++) 
+    {
+      for (let j = 0; j < state.fieldSize; j++) 
+      {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.classList.add(`${i}${j}`);
+        state.grid.appendChild(cell);
+      }
+    }
+
   }
 
 };
@@ -201,6 +237,8 @@ const state =
   numbersField: null,
   openedSquares: null,
   lose: null,
+  root: null,
+  grid: null,
 };
-  
+
 logic.startGame();

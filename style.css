@@ -1,0 +1,36 @@
+:root {
+    --fieldSize: ;
+}
+  
+html, body
+{
+    height: 100%;
+    margin: 0;
+}
+
+.playground
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: inherit;
+}
+
+.grid-container 
+{
+    display: grid;
+    grid-template-rows: repeat(var(--fieldSize), 1fr);
+    grid-template-columns: repeat(var(--fieldSize), 1fr);
+}
+  
+.cell
+{
+    height: 30px;
+    width: 30px;
+    border: dashed 1px #7a7a7a;
+}
+
+.cell:hover
+{
+    background-color: #e0e0e0;
+}
