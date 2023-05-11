@@ -98,7 +98,6 @@ const logic =
       state.openedSquares++;
       render.empty();
     }
-
   },
 
   mark()
@@ -139,6 +138,13 @@ const logic =
     });
   },
 
+  removeContextMenu()
+  {
+    document.addEventListener('contextmenu', function(event) {
+      event.preventDefault();
+    });
+  },
+
   handleLeftClick() {
     
     if(!state.lose)
@@ -148,6 +154,7 @@ const logic =
   
       if(logic.isWinner())
       {
+        logic.removeContextMenu();
         logic.removeAllClicks();
         render.winner();
       }
@@ -163,7 +170,7 @@ const logic =
   handleRightClick()
   {
     event.preventDefault();
-    if (event.target.classList.contains(`flag`))
+    if (logic.isFlaged())
     {
       logic.unMark();
     }
@@ -171,6 +178,11 @@ const logic =
     {
       logic.mark();
     }
+  },
+
+  isFlaged()
+  {
+    return event.target.classList.contains(`flag`);
   },
 
   isWinner()
@@ -182,6 +194,7 @@ const logic =
   {
     logic.init();
     render.grid();
+    logic.removeContextMenu();
     logic.addClickOnCells();
     render.field(state.bombsPosition);
   },
