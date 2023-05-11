@@ -2,9 +2,9 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 5;
+    state.fieldSize = 3;
     state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 5;
+    state.bombsCount = 8;
     state.bombsPosition = logic.createBombs();
     state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
@@ -128,6 +128,7 @@ const logic =
   
       if(logic.isWinner())
       {
+        logic.removeAllClicks();
         render.winner();
       }
 
