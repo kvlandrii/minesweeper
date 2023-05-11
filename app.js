@@ -4,7 +4,7 @@ const logic =
   {
     state.fieldSize = 5;
     state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 7;
+    state.bombsCount = 5;
     state.bombsPosition = logic.createBombs();
     state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
@@ -50,56 +50,8 @@ const logic =
     }
     return bombsPosition;
   },
-
-  handleTurns()
-  {
-    while(!state.lose)
-    {
-      if(state.openedSquares != (state.fieldSize**2 - state.bombsCount))
-      {
-        let pos = logic.getOpenPosition();
-        if(!state.field[pos.x][pos.y] && state.field[pos.x][pos.y] != 0)
-        {
-          logic.open(pos);
-          render.field(state.field);
-        }
-        else
-        {
-          render.alreadyOpened();
-        }
-      }
-      else
-      {
-        render.winner();
-        return;
-      }
-    }
-    render.loser();
-  },
   
-  getOpenPosition()
-  {
-    let retry = true;
-    while(retry)
-    {
-      retry = false;
-      let input = prompt(render.openRequestMsg());
-      var x = parseInt(input[0]);
-      var y = parseInt(input[1]);
-      if(x >= state.fieldSize || y >= state.fieldSize)
-      {
-        retry = true;
-        render.wrongInput();
-      }
-    }
-
-    return {
-      x: x,
-      y: y
-    }
-  },
-  
-  openedCell()
+  bombsNear()
   {
     let biggerField = logic.createField(state.fieldSize + 2);
     biggerField = logic.copyForBiggerField(state.bombsPosition, biggerField);
@@ -142,12 +94,22 @@ const logic =
     });
   },
   
+  removeAllClicks()
+  {
+    const cells = document.querySelectorAll('.cell');
+
+    cells.forEach((cell) => {
+      cell.removeEventListener('click', logic.handleClick);
+    });
+  },
+  
   open(pos)
   {
     if(state.bombsPosition[pos[0]][pos[1]])
     {
       state.lose = true;
       render.bomb();
+      render.loser();
     }
     else
     {
@@ -158,18 +120,36 @@ const logic =
   },
 
   handleClick() {
-    let cellPosition = event.target.classList[1];
-    logic.open(cellPosition);
-    event.target.removeEventListener('click', logic.handleClick);
-  },
+    
+    if(!state.lose)
+    {
+      let cellPosition = event.target.classList[1];
+      logic.open(cellPosition);
   
+      if(logic.isWinner())
+      {
+        render.winner();
+      }
+
+      event.target.removeEventListener('click', logic.handleClick);
+    }
+    else
+    {
+      logic.removeAllClicks();
+    }
+  },
+
+  isWinner()
+  {
+    return (state.openedSquares == (state.fieldSize**2 - state.bombsCount))
+  },
+
   startGame()
   {
     logic.init();
     render.grid();
     logic.addClickOnCells();
     render.field(state.bombsPosition);
-    //logic.handleTurns();
   },
 
 };
@@ -185,11 +165,6 @@ const render =
     console.log(``);
   },
 
-  openRequestMsg()
-  {
-    return `Enter square coordinates:`;
-  },
-
   winner()
   {
     console.log(`Winner!`);
@@ -198,16 +173,6 @@ const render =
   loser()
   {
     console.log(`Loser!`);
-  },
-
-  wrongInput()
-  {
-    console.log(`Wrong input! Choose another coordinates!`);
-  },
-
-  alreadyOpened()
-  {
-    console.log(`This square has already been used!`);
   },
 
   grid()
@@ -232,7 +197,7 @@ const render =
 
   empty()
   {
-    let number = logic.openedCell();
+    let number = logic.bombsNear();
     event.target.classList.add(`number`);
     event.target.classList.add(`number-${number}`)
     event.target.textContent = number;
@@ -252,5 +217,6 @@ const state =
   root: null,
   grid: null,
 };
+
 
 logic.startGame();
