@@ -2,9 +2,9 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 3;
+    state.fieldSize = 5;
     state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 8;
+    state.bombsCount = 5;
     state.bombsPosition = logic.createBombs();
     state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
@@ -84,25 +84,7 @@ const logic =
     }
     return to;
   },
-  
-  addClickOnCells()
-  {
-    const cells = document.querySelectorAll('.cell');
-    
-    cells.forEach((cell) => {
-      cell.addEventListener('click', logic.handleClick);
-    });
-  },
-  
-  removeAllClicks()
-  {
-    const cells = document.querySelectorAll('.cell');
 
-    cells.forEach((cell) => {
-      cell.removeEventListener('click', logic.handleClick);
-    });
-  },
-  
   open(pos)
   {
     if(state.bombsPosition[pos[0]][pos[1]])
@@ -119,7 +101,45 @@ const logic =
 
   },
 
-  handleClick() {
+  mark()
+  {
+    render.flag();
+    event.target.removeEventListener(`click`, logic.handleLeftClick);
+  },
+
+  unMark()
+  {
+    render.unFlag();
+    event.target.addEventListener(`click`, logic.handleLeftClick);
+  },
+  
+  addClickOnCells()
+  {
+    const cells = document.querySelectorAll('.cell');
+    
+    cells.forEach((cell) => {
+      cell.addEventListener('click', logic.handleLeftClick);
+    });
+
+    cells.forEach((cell) => {
+      cell.addEventListener('contextmenu', logic.handleRightClick);
+    });
+  },
+  
+  removeAllClicks()
+  {
+    const cells = document.querySelectorAll('.cell');
+
+    cells.forEach((cell) => {
+      cell.removeEventListener('click', logic.handleLeftClick);
+    });
+
+    cells.forEach((cell) => {
+      cell.removeEventListener('contextmenu', logic.handleRightClick);
+    });
+  },
+
+  handleLeftClick() {
     
     if(!state.lose)
     {
@@ -132,11 +152,24 @@ const logic =
         render.winner();
       }
 
-      event.target.removeEventListener('click', logic.handleClick);
+      event.target.removeEventListener('click', logic.handleLeftClick);
     }
     else
     {
       logic.removeAllClicks();
+    }
+  },
+
+  handleRightClick()
+  {
+    event.preventDefault();
+    if (event.target.classList.contains(`flag`))
+    {
+      logic.unMark();
+    }
+    else
+    {
+      logic.mark();
     }
   },
 
@@ -202,6 +235,16 @@ const render =
     event.target.classList.add(`number`);
     event.target.classList.add(`number-${number}`)
     event.target.textContent = number;
+  },
+
+  flag()
+  {
+    event.target.classList.add(`flag`);
+  },
+
+  unFlag()
+  {
+    event.target.classList.remove(`flag`);
   },
 
 };
