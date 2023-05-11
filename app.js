@@ -96,6 +96,7 @@ const logic =
     else
     {
       state.openedSquares++;
+      event.target.removeEventListener(`contextmenu`, logic.handleRightClick);
       render.empty();
     }
   },
@@ -146,15 +147,13 @@ const logic =
   },
 
   handleLeftClick() {
-    
-    if(!state.lose)
+    if(!logic.isLoser())
     {
       let cellPosition = event.target.classList[1];
       logic.open(cellPosition);
   
       if(logic.isWinner())
       {
-        logic.removeContextMenu();
         logic.removeAllClicks();
         render.winner();
       }
@@ -170,19 +169,32 @@ const logic =
   handleRightClick()
   {
     event.preventDefault();
-    if (logic.isFlaged())
+    if(!logic.isLoser())
     {
-      logic.unMark();
+      if (logic.isFlaged())
+      {
+        logic.unMark();
+      }
+      else
+      {
+        logic.mark();
+      }
     }
-    else
-    {
-      logic.mark();
-    }
+  },
+
+  isLoser()
+  {
+    return state.lose;
   },
 
   isFlaged()
   {
     return event.target.classList.contains(`flag`);
+  },
+
+  isOpened()
+  {
+    return event.target.classList.contains(`number`);
   },
 
   isWinner()
@@ -194,8 +206,8 @@ const logic =
   {
     logic.init();
     render.grid();
-    logic.removeContextMenu();
     logic.addClickOnCells();
+    logic.removeContextMenu();
     render.field(state.bombsPosition);
   },
 
