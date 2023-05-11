@@ -28,9 +28,71 @@ html, body
     height: 30px;
     width: 30px;
     border: dashed 1px #7a7a7a;
+    background-color: #dfdfdf;
 }
 
-.cell:hover
+.number
 {
-    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bolder;
+    user-select: none;
+    background-color: white;
+}
+
+.bomb
+{
+    background-image: url("src/redBomb.png");
+    background-size: cover;
+}
+
+.number-0
+{
+    color: rgb(0, 0, 0, 0);
+}
+
+.number-1
+{
+    color: rgb(26, 115, 232);
+}
+
+.number-2
+{
+    color: rgb(41, 175, 36);
+}
+
+.number-3
+{
+    color: rgb(219, 43, 43);
+}
+
+.number-4
+{
+    color: rgb(145, 0, 212);
+}
+
+.number-5
+{
+    color: rgb(243, 144, 63);
+}
+
+.number-5
+{
+    color: rgb(243, 144, 63);
+}
+
+.number-6
+{
+    color: rgb(0, 128, 128);
+}
+
+.number-7
+{
+    color: rgb(128, 134, 38);
+}
+
+.number-8
+{
+    color: rgb(0, 0, 0);
 }

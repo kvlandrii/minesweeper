@@ -4,7 +4,7 @@ const logic =
   {
     state.fieldSize = 5;
     state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 2;
+    state.bombsCount = 7;
     state.bombsPosition = logic.createBombs();
     state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
@@ -12,7 +12,6 @@ const logic =
     state.root = document.documentElement;
     state.root.style.setProperty('--fieldSize', state.fieldSize);
     state.grid = document.querySelector('.grid-container');
-
   },
   
   createField(fieldSize) 
@@ -100,26 +99,13 @@ const logic =
     }
   },
   
-  open(pos)
-  {
-    state.field[pos.x][pos.y] = logic.openedCell(pos);
-    if(state.bombsPosition[pos.x][pos.y])
-    {
-      state.lose = true;
-    }
-    else
-    {
-      state.openedSquares++;
-    }
-  },
-
-  openedCell(pos)
+  openedCell()
   {
     let biggerField = logic.createField(state.fieldSize + 2);
     biggerField = logic.copyForBiggerField(state.bombsPosition, biggerField);
     let bombsNear = 0;
-    let x = pos.x + 1;
-    let y = pos.y + 1;
+    let x = parseInt(event.target.classList[1][0]) + 1;
+    let y = parseInt(event.target.classList[1][1]) + 1;
     if(!biggerField[x][y])
     {
       if(biggerField[x - 1][y - 1]) bombsNear++;
@@ -130,11 +116,10 @@ const logic =
       if(biggerField[x + 1][y - 1]) bombsNear++;
       if(biggerField[x + 1][y]) bombsNear++;
       if(biggerField[x + 1][y + 1]) bombsNear++;
-      return bombsNear;
     }
-    return `bomb`;
+    return bombsNear;
   },
-
+  
   copyForBiggerField(from, to)
   {
     for (let i = 0; i < from.length; i++) {
@@ -147,19 +132,34 @@ const logic =
     }
     return to;
   },
-
+  
   addClickOnCells()
   {
     const cells = document.querySelectorAll('.cell');
-
+    
     cells.forEach((cell) => {
       cell.addEventListener('click', logic.handleClick);
     });
   },
+  
+  open(pos)
+  {
+    if(state.bombsPosition[pos[0]][pos[1]])
+    {
+      state.lose = true;
+      render.bomb();
+    }
+    else
+    {
+      state.openedSquares++;
+      render.empty();
+    }
+
+  },
 
   handleClick() {
-    console.log(`Cell ${event.target.classList[1]} was clicked!`);
-    event.target.style.backgroundColor = `#a0a0a0`;
+    let cellPosition = event.target.classList[1];
+    logic.open(cellPosition);
     event.target.removeEventListener('click', logic.handleClick);
   },
   
@@ -168,7 +168,6 @@ const logic =
     logic.init();
     render.grid();
     logic.addClickOnCells();
-    render.field(state.field);
     render.field(state.bombsPosition);
     //logic.handleTurns();
   },
@@ -224,7 +223,20 @@ const render =
       }
     }
 
-  }
+  },
+  
+  bomb()
+  {
+    event.target.classList.add(`bomb`);
+  },
+
+  empty()
+  {
+    let number = logic.openedCell();
+    event.target.classList.add(`number`);
+    event.target.classList.add(`number-${number}`)
+    event.target.textContent = number;
+  },
 
 };
   
