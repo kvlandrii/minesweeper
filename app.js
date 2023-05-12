@@ -4,7 +4,7 @@ const logic =
   {
     state.fieldSize = 10;
     state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 10;
+    state.bombsCount = 5;
     state.bombsPosition = logic.createBombs();
     state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
@@ -85,8 +85,10 @@ const logic =
     return to;
   },
 
-  open(pos)
+  open(cell)
   {
+    let pos = cell.classList[1];
+
     if(state.bombsPosition[pos[0]][pos[1]])
     {
       state.lose = true;
@@ -95,9 +97,9 @@ const logic =
     }
     else
     {
+      let empty = render.empty(cell);
       state.openedSquares++;
-      event.target.removeEventListener(`contextmenu`, logic.handleRightClick);
-      render.empty();
+      cell.removeEventListener(`contextmenu`, logic.handleRightClick);
     }
   },
 
@@ -149,9 +151,8 @@ const logic =
   handleLeftClick() {
     if(!logic.isLoser())
     {
-      let cellPosition = event.target.classList[1];
-      logic.open(cellPosition);
-  
+      logic.open(event.target);
+
       if(logic.isWinner())
       {
         logic.removeAllClicks();
@@ -261,8 +262,7 @@ const render =
       for (let j = 0; j < state.fieldSize; j++) 
       {
         const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.classList.add(`${i}${j}`);
+        cell.classList.add('cell', `${i}${j}`);
         state.grid.appendChild(cell);
       }
     }
@@ -271,7 +271,7 @@ const render =
   
   redBomb()
   {
-    event.target.classList.add(`redBomb`);
+    event.target.classList.add(`bomb`, `red`);
   },
 
   bomb(cell)
@@ -279,12 +279,12 @@ const render =
     cell.classList.add(`bomb`);
   },
 
-  empty()
+  empty(cell)
   {
     let number = logic.bombsNear();
-    event.target.classList.add(`number`);
-    event.target.classList.add(`number-${number}`)
-    event.target.textContent = number;
+    cell.classList.add(`number`,`number-${number}`)
+    cell.textContent = number;
+    return number;
   },
 
   flag()
@@ -311,6 +311,5 @@ const state =
   root: null,
   grid: null,
 };
-
 
 logic.startGame();

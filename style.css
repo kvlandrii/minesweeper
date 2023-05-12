@@ -42,17 +42,15 @@ html, body
     background-color: rgb(255, 255, 255);
 }
 
-.redBomb
-{
-    background-image: url("src/redBomb.png");
-    background-size: cover;
-}
-
 .bomb
 {
     background-image: url("src/bomb.png");
     background-size: cover;
-    background-color: #dfdfdf;
+}
+
+.red
+{
+    background-color: red;
 }
 
 .flag
