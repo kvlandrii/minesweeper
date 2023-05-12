@@ -2,8 +2,8 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 5;
-    state.bombsCount = 3;
+    state.fieldSize = 8;
+    state.bombsCount = 5;
     state.bombsPosition = logic.createBombs();
     state.openedSquares = 0;
     state.lose = false;
@@ -136,20 +136,85 @@ const logic =
   
   open(cell)
   {
-    let x = cell.classList[1][0];
-    let y = cell.classList[1][1];
+    let x = parseInt(cell.classList[1][0]);
+    let y = parseInt(cell.classList[1][1]);
 
-    if(state.bombsPosition[x][y])
+    if(!state.grid[x][y].classList.contains(`opened`))
     {
-      state.lose = true;
-      render.openedBomb(cell);
-      render.loser();
-    }
-    else
-    {
-      render.openedNumber(cell);
-      state.openedSquares++;
-      cell.removeEventListener(`contextmenu`, logic.handleRightClick);
+      if(state.bombsPosition[x][y])
+      {
+        state.lose = true;
+        render.openedBomb(cell);
+        render.loser();
+      }
+      else
+      {
+        render.openedNumber(cell);
+        state.openedSquares++;
+        cell.removeEventListener('click', logic.handleLeftClick);
+        cell.removeEventListener(`contextmenu`, logic.handleRightClick);
+        if(state.field[x][y] == `0`)
+        {
+          if(x != `0`)
+          {
+            // 0 x 0
+            // 0 0 0
+            // 0 0 0
+            logic.open(state.grid[x - 1][y]); 
+            if(y != `0`)
+            {
+            // 0 0 0
+            // x 0 0
+            // 0 0 0
+              logic.open(state.grid[x][y - 1]);
+            // x 0 0
+            // 0 0 0
+            // 0 0 0
+              logic.open(state.grid[x - 1][y - 1]);
+              if(y != (state.fieldSize - 1))
+              {
+            // 0 0 0
+            // 0 0 x
+            // 0 0 0
+                logic.open(state.grid[x][y + 1]);
+            // 0 0 x
+            // 0 0 0
+            // 0 0 0
+                logic.open(state.grid[x - 1][y + 1])
+              }
+            }
+          }
+          if(x != (state.fieldSize - 1))
+          {
+            // 0 0 0
+            // 0 0 0
+            // 0 x 0
+            logic.open(state.grid[x + 1][y]);
+            if(y != (state.fieldSize - 1))
+            {
+            // 0 0 0
+            // 0 0 0
+            // 0 0 x
+              logic.open(state.grid[x + 1][y + 1]);
+            // 0 0 0
+            // 0 0 x
+            // 0 0 0
+              logic.open(state.grid[x][y + 1]);
+              if(y != `0`)
+              {
+            // 0 0 0
+            // 0 0 0
+            // x 0 0
+                logic.open(state.grid[x + 1][y - 1]);
+            // 0 0 0
+            // 0 0 0
+            // 0 0 x
+                logic.open(state.grid[x + 1][y + 1])
+              }
+            }
+          }
+        }
+      }
     }
   },
 
@@ -164,7 +229,7 @@ const logic =
         render.winner();
       }
       
-      event.target.removeEventListener('click', logic.handleLeftClick);
+      //event.target.removeEventListener('click', logic.handleLeftClick);
     }
     else
     {
@@ -241,6 +306,7 @@ const render =
   {
     cell.querySelector(`.num`).style.zIndex = `0`;
     cell.style.backgroundColor = `white`;
+    cell.classList.add(`opened`);
   },
 
   openedBomb(cell)
@@ -268,7 +334,10 @@ const render =
       {
         if(state.field[i][j] == `bomb`)
         {
-          state.grid[i][j].querySelector(`.vis`).style.zIndex = `0`;
+          if(!state.grid[i][j].classList.contains(`flag`))
+          {
+            state.grid[i][j].querySelector(`.vis`).style.zIndex = `0`;
+          }
         }
       }  
     }
