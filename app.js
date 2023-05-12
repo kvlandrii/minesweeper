@@ -2,16 +2,16 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 10;
-    state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 5;
+    state.fieldSize = 5;
+    state.bombsCount = 3;
     state.bombsPosition = logic.createBombs();
-    state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
     state.lose = false;
     state.root = document.documentElement;
     state.root.style.setProperty('--fieldSize', state.fieldSize);
-    state.grid = document.querySelector('.grid-container');
+    state.grid = logic.createField(state.fieldSize);
+    render.createGrid();
+    state.field = logic.createOpenedField();
   },
   
   createField(fieldSize) 
@@ -51,13 +51,13 @@ const logic =
     return bombsPosition;
   },
   
-  bombsNear()
+  bombsNear(cell)
   {
     let biggerField = logic.createField(state.fieldSize + 2);
     biggerField = logic.copyForBiggerField(state.bombsPosition, biggerField);
     let bombsNear = 0;
-    let x = parseInt(event.target.classList[1][0]) + 1;
-    let y = parseInt(event.target.classList[1][1]) + 1;
+    let x = parseInt(cell.classList[1][0]) + 1;
+    let y = parseInt(cell.classList[1][1]) + 1;
     if(!biggerField[x][y])
     {
       if(biggerField[x - 1][y - 1]) bombsNear++;
@@ -68,6 +68,10 @@ const logic =
       if(biggerField[x + 1][y - 1]) bombsNear++;
       if(biggerField[x + 1][y]) bombsNear++;
       if(biggerField[x + 1][y + 1]) bombsNear++;
+    }
+    else
+    {
+      return `bomb`;
     }
     return bombsNear;
   },
@@ -84,31 +88,13 @@ const logic =
     }
     return to;
   },
-
-  open(cell)
-  {
-    let pos = cell.classList[1];
-
-    if(state.bombsPosition[pos[0]][pos[1]])
-    {
-      state.lose = true;
-      render.redBomb();
-      render.loser();
-    }
-    else
-    {
-      let empty = render.empty(cell);
-      state.openedSquares++;
-      cell.removeEventListener(`contextmenu`, logic.handleRightClick);
-    }
-  },
-
+  
   mark()
   {
     render.flag();
     event.target.removeEventListener(`click`, logic.handleLeftClick);
   },
-
+  
   unMark()
   {
     render.unFlag();
@@ -122,7 +108,7 @@ const logic =
     cells.forEach((cell) => {
       cell.addEventListener('click', logic.handleLeftClick);
     });
-
+    
     cells.forEach((cell) => {
       cell.addEventListener('contextmenu', logic.handleRightClick);
     });
@@ -131,21 +117,40 @@ const logic =
   removeAllClicks()
   {
     const cells = document.querySelectorAll('.cell');
-
+    
     cells.forEach((cell) => {
       cell.removeEventListener('click', logic.handleLeftClick);
     });
-
+    
     cells.forEach((cell) => {
       cell.removeEventListener('contextmenu', logic.handleRightClick);
     });
   },
-
+  
   removeContextMenu()
   {
     document.addEventListener('contextmenu', function(event) {
       event.preventDefault();
     });
+  },
+  
+  open(cell)
+  {
+    let x = cell.classList[1][0];
+    let y = cell.classList[1][1];
+
+    if(state.bombsPosition[x][y])
+    {
+      state.lose = true;
+      render.openedBomb(cell);
+      render.loser();
+    }
+    else
+    {
+      render.openedNumber(cell);
+      state.openedSquares++;
+      cell.removeEventListener(`contextmenu`, logic.handleRightClick);
+    }
   },
 
   handleLeftClick() {
@@ -158,7 +163,7 @@ const logic =
         logic.removeAllClicks();
         render.winner();
       }
-
+      
       event.target.removeEventListener('click', logic.handleLeftClick);
     }
     else
@@ -166,7 +171,7 @@ const logic =
       logic.removeAllClicks();
     }
   },
-
+  
   handleRightClick()
   {
     event.preventDefault();
@@ -193,40 +198,30 @@ const logic =
     return event.target.classList.contains(`flag`);
   },
 
-  isOpened()
-  {
-    return event.target.classList.contains(`number`);
-  },
-
   isWinner()
   {
-    return (state.openedSquares == (state.fieldSize**2 - state.bombsCount))
+    return (state.openedSquares == (state.fieldSize**2 - state.bombsCount));
   },
 
-  showBomb()
+  createOpenedField()
   {
-    const cells = document.querySelectorAll('.cell');
-
-    cells.forEach((cell) => {
-      let x = cell.classList[1][0];
-      let y = cell.classList[1][1];
-      if(state.bombsPosition[x][y])
+    let field = logic.createField(state.fieldSize);
+    for (let i = 0; i < state.fieldSize; i++) 
+    {
+      for (let j = 0; j < state.fieldSize; j++) 
       {
-        if(!cell.classList.contains(`redBomb`))
-        {
-          render.bomb(cell);
-        }
+        field[i][j] = logic.bombsNear(state.grid[i][j]);
       }
-    });
+    }
+    return field;
   },
 
   startGame()
   {
     logic.init();
-    render.grid();
-    logic.addClickOnCells();
+    render.field(state.field);
     logic.removeContextMenu();
-    render.field(state.bombsPosition);
+    logic.addClickOnCells();
   },
 
 };
@@ -242,49 +237,77 @@ const render =
     console.log(``);
   },
 
+  openedNumber(cell)
+  {
+    cell.querySelector(`.num`).style.zIndex = `0`;
+    cell.style.backgroundColor = `white`;
+  },
+
+  openedBomb(cell)
+  {
+    cell.querySelector(`.vis`).style.zIndex = `0`;
+    cell.style.backgroundColor = `red`;
+  },
+
   winner()
   {
-    console.log(`Winner!`);
     document.querySelector(`.playground`).style.backgroundColor = `#d1ffb7`;
   },
   
   loser()
   {
-    console.log(`Loser!`);
     document.querySelector(`.playground`).style.backgroundColor = `#ffb7b7`;
-    logic.showBomb();
+    render.showBomb();
   },
 
-  grid()
+  showBomb()
   {
+    for (let i = 0; i < state.fieldSize; i++) 
+    {
+      for (let j = 0; j < state.fieldSize; j++) 
+      {
+        if(state.field[i][j] == `bomb`)
+        {
+          state.grid[i][j].querySelector(`.vis`).style.zIndex = `0`;
+        }
+      }  
+    }
+  },
+
+  createGrid()
+  {
+    const grid = document.querySelector('.grid-container');
     for (let i = 0; i < state.fieldSize; i++) 
     {
       for (let j = 0; j < state.fieldSize; j++) 
       {
         const cell = document.createElement('div');
         cell.classList.add('cell', `${i}${j}`);
-        state.grid.appendChild(cell);
+        render.cell(cell);
+        grid.appendChild(cell);
+        state.grid[i][j] = cell;
       }
     }
-
-  },
-  
-  redBomb()
-  {
-    event.target.classList.add(`bomb`, `red`);
   },
 
-  bomb(cell)
+  cell(cell)
   {
-    cell.classList.add(`bomb`);
-  },
-
-  empty(cell)
-  {
-    let number = logic.bombsNear();
-    cell.classList.add(`number`,`number-${number}`)
-    cell.textContent = number;
-    return number;
+    let number = logic.bombsNear(cell);
+    const content = document.createElement(`div`);
+    
+    if(number != `bomb`)
+    {
+      cell.classList.add(`number`);
+      content.innerHTML = number;
+      content.classList.add(`num`,`number-${number}`);
+      cell.appendChild(content)
+    }
+    else
+    {
+      cell.classList.add(`bomb`);
+      content.classList.add(`vis`);
+      cell.appendChild(content);
+    }
   },
 
   flag()
@@ -305,7 +328,6 @@ const state =
   field: null,
   bombsCount: null,
   bombsPosition: null,
-  numbersField: null,
   openedSquares: null,
   lose: null,
   root: null,
