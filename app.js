@@ -2,9 +2,9 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 5;
+    state.fieldSize = 10;
     state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 5;
+    state.bombsCount = 10;
     state.bombsPosition = logic.createBombs();
     state.numbersField = logic.createField(state.fieldSize + 2);
     state.openedSquares = 0;
@@ -90,7 +90,7 @@ const logic =
     if(state.bombsPosition[pos[0]][pos[1]])
     {
       state.lose = true;
-      render.bomb();
+      render.redBomb();
       render.loser();
     }
     else
@@ -202,6 +202,23 @@ const logic =
     return (state.openedSquares == (state.fieldSize**2 - state.bombsCount))
   },
 
+  showBomb()
+  {
+    const cells = document.querySelectorAll('.cell');
+
+    cells.forEach((cell) => {
+      let x = cell.classList[1][0];
+      let y = cell.classList[1][1];
+      if(state.bombsPosition[x][y])
+      {
+        if(!cell.classList.contains(`redBomb`))
+        {
+          render.bomb(cell);
+        }
+      }
+    });
+  },
+
   startGame()
   {
     logic.init();
@@ -227,11 +244,14 @@ const render =
   winner()
   {
     console.log(`Winner!`);
+    document.querySelector(`.playground`).style.backgroundColor = `#d1ffb7`;
   },
   
   loser()
   {
     console.log(`Loser!`);
+    document.querySelector(`.playground`).style.backgroundColor = `#ffb7b7`;
+    logic.showBomb();
   },
 
   grid()
@@ -249,9 +269,14 @@ const render =
 
   },
   
-  bomb()
+  redBomb()
   {
-    event.target.classList.add(`bomb`);
+    event.target.classList.add(`redBomb`);
+  },
+
+  bomb(cell)
+  {
+    cell.classList.add(`bomb`);
   },
 
   empty()
