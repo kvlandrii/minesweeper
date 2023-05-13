@@ -3,7 +3,7 @@ const logic =
   init()
   {
     state.fieldSize = 8;
-    state.bombsCount = 5;
+    state.bombsCount = 10;
     state.bombsPosition = logic.createBombs();
     state.openedSquares = 0;
     state.lose = false;
@@ -139,7 +139,7 @@ const logic =
     let x = parseInt(cell.classList[1][0]);
     let y = parseInt(cell.classList[1][1]);
 
-    if(!state.grid[x][y].classList.contains(`opened`))
+    if(!state.grid[x][y].classList.contains(`opened`) && !state.grid[x][y].classList.contains(`flag`))
     {
       if(state.bombsPosition[x][y])
       {
@@ -155,64 +155,69 @@ const logic =
         cell.removeEventListener(`contextmenu`, logic.handleRightClick);
         if(state.field[x][y] == `0`)
         {
+          // x 0 0
+          // 0 + 0
+          // 0 0 0
+          if(x != `0` && y != `0`)
+          {
+            logic.open(state.grid[x - 1][y - 1]);
+          }
+          
+          // 0 x 0
+          // 0 + 0
+          // 0 0 0
           if(x != `0`)
           {
-            // 0 x 0
-            // 0 0 0
-            // 0 0 0
-            logic.open(state.grid[x - 1][y]); 
-            if(y != `0`)
-            {
-            // 0 0 0
-            // x 0 0
-            // 0 0 0
-              logic.open(state.grid[x][y - 1]);
-            // x 0 0
-            // 0 0 0
-            // 0 0 0
-              logic.open(state.grid[x - 1][y - 1]);
-              if(y != (state.fieldSize - 1))
-              {
-            // 0 0 0
-            // 0 0 x
-            // 0 0 0
-                logic.open(state.grid[x][y + 1]);
-            // 0 0 x
-            // 0 0 0
-            // 0 0 0
-                logic.open(state.grid[x - 1][y + 1])
-              }
-            }
+            logic.open(state.grid[x - 1][y]);
           }
+
+          // 0 0 x
+          // 0 + 0
+          // 0 0 0
+          if(x != `0` && y != (state.fieldSize - 1))
+          {
+            logic.open(state.grid[x - 1][y + 1]);
+          }
+
+          // 0 0 0
+          // x + 0
+          // 0 0 0
+          if(y != `0`)
+          {
+            logic.open(state.grid[x][y - 1]);
+          }
+          
+          // 0 0 0
+          // 0 + x
+          // 0 0 0
+          if(y != (state.fieldSize - 1))
+          {
+            logic.open(state.grid[x][y + 1]);
+          }
+
+          // 0 0 0
+          // 0 + 0
+          // x 0 0
+          if(x != (state.fieldSize - 1) && y != `0`)
+          {
+            logic.open(state.grid[x + 1][y - 1]);
+          }
+
+          // 0 0 0
+          // 0 + 0
+          // 0 x 0
           if(x != (state.fieldSize - 1))
           {
-            // 0 0 0
-            // 0 0 0
-            // 0 x 0
             logic.open(state.grid[x + 1][y]);
-            if(y != (state.fieldSize - 1))
-            {
-            // 0 0 0
-            // 0 0 0
-            // 0 0 x
-              logic.open(state.grid[x + 1][y + 1]);
-            // 0 0 0
-            // 0 0 x
-            // 0 0 0
-              logic.open(state.grid[x][y + 1]);
-              if(y != `0`)
-              {
-            // 0 0 0
-            // 0 0 0
-            // x 0 0
-                logic.open(state.grid[x + 1][y - 1]);
-            // 0 0 0
-            // 0 0 0
-            // 0 0 x
-                logic.open(state.grid[x + 1][y + 1])
-              }
-            }
           }
+
+          // 0 0 0
+          // 0 + 0
+          // 0 0 x
+          if(x != (state.fieldSize - 1) && y != (state.fieldSize - 1))
+          {
+            logic.open(state.grid[x + 1][y + 1]);
+          }          
         }
       }
     }
@@ -228,8 +233,6 @@ const logic =
         logic.removeAllClicks();
         render.winner();
       }
-      
-      //event.target.removeEventListener('click', logic.handleLeftClick);
     }
     else
     {
