@@ -2,13 +2,16 @@ const logic =
 {
   init()
   {
-    state.fieldSize = 3;
-    state.field = logic.createField(state.fieldSize);
-    state.bombsCount = 2;
+    state.fieldSize = 10;
+    state.bombsCount = 15;
     state.bombsPosition = logic.createBombs();
-    state.numbersField = logic.createField(state.fieldSize + 2);
-    state.openedSquares = 0;
+    state.openedCells = 0;
     state.lose = false;
+    state.root = document.documentElement;
+    state.root.style.setProperty('--fieldSize', state.fieldSize);
+    state.grid = logic.createField(state.fieldSize);
+    render.createGrid();
+    state.field = logic.createOpenedField();
   },
   
   createField(fieldSize) 
@@ -47,75 +50,16 @@ const logic =
     }
     return bombsPosition;
   },
-
-  handleTurns()
-  {
-    while(!state.lose)
-    {
-      if(state.openedSquares != (state.fieldSize**2 - state.bombsCount))
-      {
-        let pos = logic.getOpenPosition();
-        if(!state.field[pos.x][pos.y] && state.field[pos.x][pos.y] != 0)
-        {
-          logic.open(pos);
-          render.field(state.field);
-        }
-        else
-        {
-          render.alreadyOpened();
-        }
-      }
-      else
-      {
-        render.winner();
-        return;
-      }
-    }
-    render.loser();
-  },
   
-  getOpenPosition()
-  {
-    let retry = true;
-    while(retry)
-    {
-      retry = false;
-      let input = prompt(render.openRequestMsg());
-      var x = parseInt(input[0]);
-      var y = parseInt(input[1]);
-      if(x >= state.fieldSize || y >= state.fieldSize)
-      {
-        retry = true;
-        render.wrongInput();
-      }
-    }
-
-    return {
-      x: x,
-      y: y
-    }
-  },
-  
-  open(pos)
-  {
-    state.field[pos.x][pos.y] = logic.openedPlace(pos);
-    if(state.bombsPosition[pos.x][pos.y])
-    {
-      state.lose = true;
-    }
-    else
-    {
-      state.openedSquares++;
-    }
-  },
-
-  openedPlace(pos)
+  bombsNear(cell)
   {
     let biggerField = logic.createField(state.fieldSize + 2);
     biggerField = logic.copyForBiggerField(state.bombsPosition, biggerField);
     let bombsNear = 0;
+    let pos = logic.getCellPosition(cell);
     let x = pos.x + 1;
     let y = pos.y + 1;
+
     if(!biggerField[x][y])
     {
       if(biggerField[x - 1][y - 1]) bombsNear++;
@@ -126,11 +70,14 @@ const logic =
       if(biggerField[x + 1][y - 1]) bombsNear++;
       if(biggerField[x + 1][y]) bombsNear++;
       if(biggerField[x + 1][y + 1]) bombsNear++;
-      return bombsNear;
     }
-    return `bomb`;
+    else
+    {
+      return `bomb`;
+    }
+    return bombsNear;
   },
-
+  
   copyForBiggerField(from, to)
   {
     for (let i = 0; i < from.length; i++) {
@@ -144,12 +91,212 @@ const logic =
     return to;
   },
   
+  mark()
+  {
+    render.flag();
+    event.target.removeEventListener(`click`, logic.handleLeftClick);
+  },
+  
+  unMark()
+  {
+    render.unFlag();
+    event.target.addEventListener(`click`, logic.handleLeftClick);
+  },
+  
+  addAllClicks()
+  {
+    const cells = document.querySelectorAll('.cell');
+    
+    cells.forEach((cell) => {
+      cell.addEventListener('click', logic.handleLeftClick);
+    });
+    
+    cells.forEach((cell) => {
+      cell.addEventListener('contextmenu', logic.handleRightClick);
+    });
+  },
+  
+  removeAllClicks()
+  {
+    const cells = document.querySelectorAll('.cell');
+    
+    cells.forEach((cell) => {
+      cell.removeEventListener('click', logic.handleLeftClick);
+    });
+    
+    cells.forEach((cell) => {
+      cell.removeEventListener('contextmenu', logic.handleRightClick);
+    });
+  },
+
+  removeClicks(cell)
+  {
+    cell.removeEventListener('click', logic.handleLeftClick);
+    cell.removeEventListener(`contextmenu`, logic.handleRightClick);
+  },
+  
+  removeContextMenu()
+  {
+    document.addEventListener('contextmenu', function(event) {
+      event.preventDefault();
+    });
+  },
+
+  getCellPosition(cell)
+  {
+    return {
+      x: parseInt(cell.classList[1][0]),
+      y: parseInt(cell.classList[1][1]),
+    }
+  },
+
+  isBomb(x, y)
+  {
+    return state.bombsPosition[x][y];
+  },
+
+  addScore()
+  {
+    state.openedCells++;
+  },
+  
+  open(cell)
+  {
+    let pos = logic.getCellPosition(cell);
+    let x = pos.x;
+    let y = pos.y;
+
+    if(!logic.isOpened(state.grid[x][y]) && !logic.isFlaged(state.grid[x][y]))
+    {
+      if(logic.isBomb(x, y))
+      {
+        state.lose = true;
+        render.openedBomb(cell);
+        render.loser();
+      }
+      else
+      {
+        render.openedNumber(cell);
+        logic.addScore();
+        logic.removeClicks(cell);
+        if(state.field[x][y] == `0`)
+        {
+          if(x != `0` && y != `0`)
+          {
+            logic.open(state.grid[x - 1][y - 1]);
+          }
+
+          if(x != `0`)
+          {
+            logic.open(state.grid[x - 1][y]);
+          }
+
+          if(x != `0` && y != (state.fieldSize - 1))
+          {
+            logic.open(state.grid[x - 1][y + 1]);
+          }
+
+          if(y != `0`)
+          {
+            logic.open(state.grid[x][y - 1]);
+          }
+
+          if(y != (state.fieldSize - 1))
+          {
+            logic.open(state.grid[x][y + 1]);
+          }
+
+          if(x != (state.fieldSize - 1) && y != `0`)
+          {
+            logic.open(state.grid[x + 1][y - 1]);
+          }
+
+          if(x != (state.fieldSize - 1))
+          {
+            logic.open(state.grid[x + 1][y]);
+          }
+
+          if(x != (state.fieldSize - 1) && y != (state.fieldSize - 1))
+          {
+            logic.open(state.grid[x + 1][y + 1]);
+          }          
+        }
+      }
+    }
+  },
+
+  handleLeftClick() {
+    if(!logic.isLoser())
+    {
+      logic.open(event.target);
+
+      if(logic.isWinner())
+      {
+        logic.removeAllClicks();
+        render.winner();
+      }
+    }
+    else
+    {
+      logic.removeAllClicks();
+    }
+  },
+  
+  handleRightClick()
+  {
+    event.preventDefault();
+    if(!logic.isLoser())
+    {
+      if (logic.isFlaged(event.target))
+      {
+        logic.unMark();
+      }
+      else
+      {
+        logic.mark();
+      }
+    }
+  },
+
+  isLoser()
+  {
+    return state.lose;
+  },
+
+  isFlaged(cell)
+  {
+    return cell.classList.contains(`flag`);
+  },
+
+  isOpened(cell)
+  {
+    return cell.classList.contains(`opened`);
+  },
+
+  isWinner()
+  {
+    return (state.openedCells == (state.fieldSize**2 - state.bombsCount));
+  },
+
+  createOpenedField()
+  {
+    let field = logic.createField(state.fieldSize);
+    for (let i = 0; i < state.fieldSize; i++) 
+    {
+      for (let j = 0; j < state.fieldSize; j++) 
+      {
+        field[i][j] = logic.bombsNear(state.grid[i][j]);
+      }
+    }
+    return field;
+  },
+
   startGame()
   {
     logic.init();
     render.field(state.field);
-    render.field(state.bombsPosition);
-    logic.handleTurns();
+    logic.removeContextMenu();
+    logic.addAllClicks();
   },
 
 };
@@ -165,30 +312,111 @@ const render =
     console.log(``);
   },
 
-  openRequestMsg()
+  openedNumber(cell)
   {
-    return `Enter square coordinates:`;
+    cell.querySelector(`.num`).style.zIndex = `0`;
+    cell.style.backgroundColor = `white`;
+    cell.classList.add(`opened`);
+  },
+
+  openedBomb(cell)
+  {
+    cell.querySelector(`.vis`).style.zIndex = `0`;
+    cell.style.backgroundColor = `red`;
   },
 
   winner()
   {
-    console.log(`Winner!`);
+    document.querySelector(`.playground`).style.backgroundColor = `#d1ffb7`;
   },
   
   loser()
   {
-    console.log(`Loser!`);
+    document.querySelector(`.playground`).style.backgroundColor = `#ffb7b7`;
+    render.showBomb();
   },
 
-  wrongInput()
+  showBomb()
   {
-    console.log(`Wrong input! Choose another coordinates!`);
+    for (let i = 0; i < state.fieldSize; i++) 
+    {
+      for (let j = 0; j < state.fieldSize; j++) 
+      {
+        if(logic.isBomb(i, j))
+        {
+          if(!logic.isFlaged(state.grid[i][j]))
+          {
+            state.grid[i][j].querySelector(`.vis`).style.zIndex = `0`;
+          }
+          else
+          {
+            render.trueFlag(state.grid[i][j]);
+          }
+        }
+        
+        if(logic.isFlaged(state.grid[i][j]) && !logic.isBomb(i, j))
+        {
+          render.cross(state.grid[i][j]);
+        }
+      }  
+    }
   },
 
-  alreadyOpened()
+  createGrid()
   {
-    console.log(`This square has already been used!`);
-  }
+    const grid = document.querySelector('.grid-container');
+    for (let i = 0; i < state.fieldSize; i++) 
+    {
+      for (let j = 0; j < state.fieldSize; j++) 
+      {
+        const cell = document.createElement('div');
+        cell.classList.add('cell', `${i}${j}`);
+        render.cell(cell);
+        grid.appendChild(cell);
+        state.grid[i][j] = cell;
+      }
+    }
+  },
+
+  cell(cell)
+  {
+    let number = logic.bombsNear(cell);
+    const content = document.createElement(`div`);
+    
+    if(number != `bomb`)
+    {
+      cell.classList.add(`number`);
+      content.innerHTML = number;
+      content.classList.add(`num`,`number-${number}`);
+      cell.appendChild(content)
+    }
+    else
+    {
+      cell.classList.add(`bomb`);
+      content.classList.add(`vis`);
+      cell.appendChild(content);
+    }
+  },
+
+  flag()
+  {
+    event.target.classList.add(`flag`);
+  },
+
+  unFlag()
+  {
+    event.target.classList.remove(`flag`);
+  },
+
+  cross(cell)
+  {
+    cell.classList.add(`crossFlag`);
+  },
+
+  trueFlag(cell)
+  {
+    cell.classList.add(`trueFlag`);
+  },
 
 };
   
@@ -198,9 +426,10 @@ const state =
   field: null,
   bombsCount: null,
   bombsPosition: null,
-  numbersField: null,
-  openedSquares: null,
+  openedCells: null,
   lose: null,
+  root: null,
+  grid: null,
 };
-  
+
 logic.startGame();

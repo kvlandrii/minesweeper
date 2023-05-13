@@ -1,0 +1,129 @@
+:root {
+    --fieldSize: ;
+}
+  
+html, body
+{
+    height: 100%;
+    margin: 0;
+}
+
+.playground
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: inherit;
+    background-color: #fdfaf5;
+}
+
+.grid-container 
+{
+    display: grid;
+    grid-template-rows: repeat(var(--fieldSize), 1fr);
+    grid-template-columns: repeat(var(--fieldSize), 1fr);
+}
+  
+.cell
+{
+    height: 20px;
+    width: 20px;
+    border: dashed 1px #afafaf;
+    background-color: #dfdfdf;
+}
+
+.number
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bolder;
+    user-select: none;
+}
+
+.num{
+    z-index: -1;
+}
+
+.number-0
+{
+    color: rgb(0, 0, 0, 0);
+}
+
+.number-1
+{
+    color: rgb(26, 115, 232);
+}
+
+.number-2
+{
+    color: rgb(41, 175, 36);
+}
+
+.number-3
+{
+    color: rgb(219, 43, 43);
+}
+
+.number-4
+{
+    color: rgb(145, 0, 212);
+}
+
+.number-5
+{
+    color: rgb(243, 144, 63);
+}
+
+.number-5
+{
+    color: rgb(243, 144, 63);
+}
+
+.number-6
+{
+    color: rgb(0, 128, 128);
+}
+
+.number-7
+{
+    color: rgb(128, 134, 38);
+}
+
+.number-8
+{
+    color: rgb(0, 0, 0);
+}
+
+.bomb
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vis
+{
+    content: url(src/bomb.png);
+    height: inherit;
+    width: inherit;
+    z-index: -1;
+}
+
+.flag
+{
+    background-image: url("src/flag.png");
+    background-size: cover;
+}
+
+.crossFlag
+{
+    background-image: url("src/crossFlag.png");
+    background-size: cover;
+}
+
+.trueFlag
+{
+    background-image: url("src/trueFlag.png");
+    background-size: cover;
+}
