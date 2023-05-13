@@ -112,6 +112,18 @@ html, body
 
 .flag
 {
-    background-image: url("src/flag_.png");
+    background-image: url("src/flag.png");
+    background-size: cover;
+}
+
+.crossFlag
+{
+    background-image: url("src/crossFlag.png");
+    background-size: cover;
+}
+
+.trueFlag
+{
+    background-image: url("src/trueFlag.png");
     background-size: cover;
 }
