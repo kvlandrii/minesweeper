@@ -3,7 +3,7 @@ const logic =
   init()
   {
     state.fieldSize = 10;
-    state.bombsCount = 15;
+    state.bombsCount = 20;
     state.bombsPosition = logic.createBombs();
     state.openedCells = 0;
     state.lose = false;
@@ -12,6 +12,28 @@ const logic =
     state.grid = logic.createField(state.fieldSize);
     render.createGrid();
     state.field = logic.createOpenedField();
+    state.timerElement = document.getElementById('timer');
+    state.seconds = 0;
+    state.minutes = 0;
+    state.intervalId = setInterval(logic.updateTimer, 1000);
+  },
+
+  stopTimer() {
+    clearInterval(state.intervalId);
+  },
+
+  updateTimer() {
+    state.seconds++;
+  
+    if (state.seconds >= 60) {
+      state.seconds = 0;
+      state.minutes++;
+    }
+  
+    const s = state.seconds < 10 ? `0${state.seconds}` : state.seconds;
+    const m = state.minutes < 10 ? `0${state.minutes}` : state.minutes;
+    
+    render.timer(m, s);
   },
   
   createField(fieldSize) 
@@ -232,8 +254,13 @@ const logic =
 
       if(logic.isWinner())
       {
+        logic.stopTimer()
         logic.removeAllClicks();
         render.winner();
+      }
+      else if(logic.isLoser())
+      {
+        logic.stopTimer();
       }
     }
     else
@@ -310,6 +337,11 @@ const render =
       console.log(field[i]);
     }
     console.log(``);
+  },
+
+  timer(m, s)
+  {
+    state.timerElement.textContent = `${m}:${s}`;
   },
 
   openedNumber(cell)
@@ -430,6 +462,15 @@ const state =
   lose: null,
   root: null,
   grid: null,
+  timerElement: null,
+  seconds: null,
+  minutes: null,
+  intervalId: null,
 };
+
+const restartButton = document.getElementById('restart');
+restartButton.addEventListener('click', () => {
+  location.reload();
+});
 
 logic.startGame();
