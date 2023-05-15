@@ -11,10 +11,69 @@ html, body
 .playground
 {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: inherit;
     background-color: #fdfaf5;
+}
+
+.header
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--fieldSize) * 37px);
+    border-top: 1px dashed #000000;
+    border-left: 1px dashed #000000;
+    border-right: 1px dashed #000000;
+    background-color: #979797;
+    border-radius: 3px 3px 0 0;
+    padding: 10px 0;
+}
+
+.header img, .footer img
+{
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+#timer
+{
+    font-weight: bolder;
+    font-size: 25px;
+    color: #ffffff;
+    user-select: none;
+}
+
+.footer
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--fieldSize) * 37px);
+    border-bottom: 1px dashed #000000;
+    border-left: 1px dashed #000000;
+    border-right: 1px dashed #000000;
+    background-color: #979797;
+    border-radius: 0 0 3px 3px;
+    padding: 10px 0;
+}
+
+#restart
+{
+    font-weight: bold;
+    font-size: 20px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+#restart:hover
+{
+    cursor: pointer;
 }
 
 .grid-container 
@@ -22,14 +81,17 @@ html, body
     display: grid;
     grid-template-rows: repeat(var(--fieldSize), 1fr);
     grid-template-columns: repeat(var(--fieldSize), 1fr);
+    border: 1px dashed #000000;
 }
   
 .cell
 {
-    height: 20px;
-    width: 20px;
+    height: 35px;
+    width: 35px;
     border: dashed 1px #afafaf;
     background-color: #dfdfdf;
+    font-weight: bolder;
+    font-size: 23px;
 }
 
 .number
