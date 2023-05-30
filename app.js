@@ -3,7 +3,7 @@ const logic =
   init()
   {
     state.fieldSize = 10;
-    state.bombsCount = 20;
+    state.bombsCount = 15;
     state.bombsPosition = logic.createBombs();
     state.openedCells = 0;
     state.lose = false;
